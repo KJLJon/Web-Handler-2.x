@@ -1,0 +1,323 @@
+to login post the values 'name','pass', and 'login', 'persist'
+
+$db->q($query, Optional $types, Optional $var1, Optional $var2, ..., Optional $varN);
+$db->q($query, Optional $types, Optional $array);
+	$query:
+		sql query
+	$types:
+		s = string
+		i = integer
+		d = double
+		b = blob
+		you need the same number of types as variables
+	$varN:
+		variables (I believe it has to be a php variable thats passed through)
+	$array:
+		array of the variables, ie:
+		array(Optional $var1, Optional $var2, ..., Optional $varN)
+	Example:
+		$results = $db->q('SELECT * FROM blah WHERE haha = ? AND hehe = ?', 'si', $haha, $hehe);
+	Results:
+		$results[0]['haha'] = $haha;  //should always be true considering the sql query
+	Notes:
+		if it gives you an error try using &$haha, &$hehe
+		the &$ forces the variable through
+
+$db->select_one($variable_name);
+	$variable_name:
+		the variable that its being set to
+	Example:
+		$db->select_one('user');
+		$user = $db->q('SELECT user_name, permission_edit_table FROM db_users WHERE user_name = "kjl_jon"');
+	Results:
+		$user->name = 'kjl_jon';
+		$user->permission->edit_table = true; //assuming it returned true for edit_table
+		
+	Notes:
+		use if only selecting one result and want it to come back as an object
+		A lot of the core data is set as objects
+
+		if the table's columns has _ it sets it to another class (if its not the same as the variable name)
+$db->insert($table, $array, $type)
+	$table:
+		table_name
+	$array:
+		array('table_column' => 'value')
+			OR
+		array(
+			array('table_column','column2'),
+			array('value11','value12'),
+			array('value21','value22')
+		)
+	$type:
+		s - String
+		i - Integer
+		d - Double
+		b - blob
+		's' OR 'ss'
+	Example:
+		using the data above would equal this statement
+		INSERT into `table_name` (`table_column`) VALUES ("value")
+			OR
+		INSERT into `table_name` (`table_column`,`column2`) VALUES ("value11","value12"),("value21","value22")
+$db->update($table, $array, $type, Optional $query, Optional $queryArgs)
+	$table:
+		table_name
+	$array:
+		array('table_column' => 'value', 'integer' => 3)
+	$type:
+		s - String
+		i - Integer
+		d - Double
+		b - blob
+		'si'
+	$query:
+		'WHERE id = ?'
+	$queryArgs:
+		array($id)
+		its the arg's (the ?'s) in the query
+		make sure you remember to add it to the end of the type
+	Example:
+		using the data above would equal this statement
+		UPDATE `table_name` SET `table_column` = "value", `integer` = 3;
+$db->affected_rows;
+	Notes:
+		Affected rows when using the UPDATE sql
+$db->insert_id;
+	Notes:
+		The last INSERT (sql) id number
+$db->num_rows;
+	Notes:
+		number of rows of a query
+$db->is_connected();
+	Notes:
+		Tells you weather or not the db is connected
+$db->safe_names($array, Optional $add_quotes);
+	$array:
+		array list of mysql references you want to make sure are safe (alpha numeric and _)
+	$add_quotes:
+		if it should add `` around the reference.  Default is true
+	Results:
+		the same array inputted but with the values scrubbed.
+$user->???
+	Notes:
+		anything in the user table with user_
+	Example:
+		$user->name is the `user_name` column in the table selected
+$user->logged_in
+	Notes:
+		(Boolean) if the user is logged in or not;
+$user->info->???
+	Notes:
+		basic information about the user;
+$user->perm->???
+	Notes:
+		permissions user has
+$sess->ip;
+	Results:
+		current ip of the person viewing the website
+$sess->reason;
+	Results:
+		reason for failed loggin (ie invalid name or password, or too many login attempts)
+$sess->id;
+	Results:
+		currently its equal to this md5(user_agent, user_ip, core['salt'])
+$sess->has_perm($permission);
+	$permission:
+		what permission you want to check if they have
+	Results:
+		True if they have the permission
+		False if they dont
+	Notes:
+		this way you dont have to check if they are logged in you just check if they have the permission
+$sess->require_perm($permission);
+	$permission:
+		what permission you want to check if they have
+	Example:
+		$sess->require_perm('link_tag');
+		//rest of code goes down here
+	Notes:
+		this will require the permission or return a 404 page (and will stop executing if 404 page has exit function in it)
+$sess->logout();
+	Results:
+		Logs the user out
+$sess->redirect($page)
+	$page:
+		the page to redirect the user to
+	Example:
+		$sess->redirect('www.google.com');
+	Notes:
+		this will either redirect them through the header (if nothing has been sent yet) or it will use javascript
+
+$sess->token(Optional $salt);
+	$salt:
+		Salt should be something unique to each form (further helps against xss attacks)
+	Results:
+		Generates random token that can be checked on the next page
+$sess->isToken($token, Optional $salt);
+	$token:
+		value of token from last page
+	$salt:
+		value to check token with
+	Results:
+		returns true if the token matches otherwise false
+	Notes:
+		This function can only be called once (it invalidates the tokens after it is called)
+$url
+	Notes:
+		The url after the main domain name
+		
+settings::get($group, Optional $global_var);
+	$group:
+		group name the variables are saved under
+	$global_var:
+		set to TRUE if you want it to merge its values with a global variable
+	Example:
+		settings::get('core', true);
+		global $core;
+		echo $core['timezone']; //US/Central
+		$core['timezone'] = 'US/Eastern';
+		echo $core['timezone']; //US/Eastern
+		settings::get('core', true);
+		echo $core['timezone']; //US/Central		
+	Notes:
+		make sure you set the variable through settings::set if you want to change it.  Otherwise if
+		you use settings::get again it will override your changes to the defaults.  See the example.
+	Results:
+		returns an array of the options it captured
+settings::set($group, $name, $value);
+	$group:
+		group name to save the variables under (limit of 32 characters)
+	$name:
+		variable name (limit of 32 characters)
+	$value:
+		variable value (limit of 127 characters)
+settings::defaults();
+	Notes:
+		Used by the core to set some defaults (ie timezone and display_errors)
+base::scrub($var, Optional $opts);
+	$var:
+		variable to scrub
+	$opts:
+		array(
+			'regex'		=> false,		//use regex or not?
+			'whitelist'	=> array(),		//whitelist of regex or strings to look for
+			'blacklist'	=> array(),		//blacklist of regex or strings to look for
+			'replace'	=> array(
+				'from'	=>	array(),	//replace from (regex if enabled)
+				'to'	=>	array()		//replace to
+			)
+		)
+	Results:
+		returns the scrubbed variable
+base::cast($var, $type, Optional $params);
+	$var:
+		variable to case
+	$type:
+		type to cast it to
+		string, boolean, bool, integer, int,
+		float, array, object, null:
+			casts it to its php type
+		code, html, xml:
+			replaces characters that could cause xss
+		text:
+			removes any html tags
+		attr:
+			safe for css attributes
+		sqlname:
+			safe for mysql references (ie table or column names)
+		datetime, date, time, timestamp, website, url,
+		zip, email, state:
+			returns what it says
+	$params:
+		sqlname:
+			param is if it should include `` or not
+		timestamp:
+			refer to php docs on strtotime for the $now (second parameter)
+		datetime, date, time:
+			true if timestamp input, false if string input (Default) (must be 'YYYY-MM-DD HH:MM:SS')
+		website, url:
+			refer to base::cast_website for the $params (second parameter)
+		state:
+			if params = true it will output full state name like Minnesota.
+			Otherwise it will output the 2 letter abbrivation like MN
+	Returns:
+		casted data to the $type (or default)
+base::cast_website($var, Optional $params);
+	$var:
+		input variable (website)
+	$params:
+		array of valid extentions (it may include '' if you want to check if it doesn't have an extention)
+	Example:
+		$mySite = base::cast_website('www.test.com',array('','html'));
+	Returns:
+		a valid website (that doesn't allow javascript)
+		It will return null if it's not valid (ie the extentions don't match)
+base::get_global($array, $var, Optional $default);
+	$array:
+		global array name
+			GET, POST, REQUEST, COOKIE, SESSION, ENV, SERVER, FILE
+		or
+			core, settings
+		it can be any global variable
+	$var:
+		the variable to get from the array
+	$default:
+		the default value if it doesn't exist.  Default is null
+	Example:
+		echo base::get_global('GET', 'a', 'null');
+		//returns $_GET['a'] or "null" if it's not set
+		
+		echo base::get_global('core', 'timezone');
+			//same as saying
+		global $core;
+		echo $core['timezone'];
+		
+		//finally
+		echo base::get_global('url');
+			//same as saying
+		global $url;
+		echo $url;
+	Returns:
+		the value, if it doesn't exist then it returns the default.
+base::get($var, $opts, Optional $echo);
+	$var:
+		variable
+	$opts:
+		array(
+			'type'		=> 'string',	//See valid base::cast $type's
+			'before'	=>	false,		//see base::scrub $opts for array overrides
+			'after'		=>	false,		//see base::scrub $opts for array overrides
+			'default'	=>	null,		//default value
+			'array'		=>	'REQUEST'	//array to get the information from, see base::get_global $array
+		)
+	$echo:
+		if you want it to echo the results
+	Results:
+		returns a scrubbed variable
+base::link($url, Optional $vars, Optional $echo);
+base::a($url, Optional $vars, Optional $echo);
+	$url:
+		internal url, IE 'add/schedule'
+	$vars:
+		refer to http_build_query's query_data
+	$echo:
+		if you want it to output (default is true) so you can easly print url's to the screen
+	Returns:
+		scrubbed text (replaces characters with safe html characters)
+base::text($txt, Optional $echo);
+base::t($txt, Optional $echo);
+	$txt:
+		text to output
+	$echo:
+		if you want it to output (default is true) so you can easly print url's to the screen
+	Returns:
+		scrubbed text (replaces characters with safe html characters)
+----------------------------------------------------------------------------------------------------------------------
+POST DATA
+	To login POST:
+		name
+		pass
+		persist
+	if logged in and timed out resend password as:
+		phrase

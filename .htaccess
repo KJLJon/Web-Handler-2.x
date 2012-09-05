@@ -1,0 +1,45 @@
+#Make handle any 404 errors.
+#change to direct people to proper index file
+	ErrorDocument 403 /index.php?p=404.inc.php
+	ErrorDocument 404 /index.php?p=404.inc.php
+	ErrorDocument 500 /index.php?p=500.inc.php
+
+#Protect files and directories from prying eyes.
+#Uncomment if mod_rewrite isn't installed
+#	<FilesMatch "\.(inc(\.php)?|htaccess)$">
+#		Order deny,allow
+#		Deny from all
+#	</FilesMatch>
+
+#Don't show directory listings for URLs which map to a directory.
+	Options -Indexes +FollowSymLinks
+
+#Set the default handler.
+#	DirectoryIndex index.php
+
+# Various rewrite rules.
+	<IfModule mod_rewrite.c>
+		RewriteEngine on
+
+#Change and uncomment if it isn't rewriting correctly
+#		RewriteBase /
+	
+#leads the domain www
+#		RewriteCond %{HTTP_HOST} !^www\.
+#		RewriteRule ^(.*)$ http://www.%{HTTP_HOST}/$1 [R=301,L]
+
+#Stops people from loading .inc.php files and
+#Rewrite URLs of the form 'x' to the form 'index.php?q=x'.
+		RewriteCond %{REQUEST_URI} ^(.*)\.(inc(\.php)?)$
+		RewriteRule ^(.*)$ index.php?p=404.inc.php [L,QSA]	
+	
+#Rewrite URLs of the form 'x' to the form 'index.php?q=x'.
+		RewriteCond %{REQUEST_FILENAME} !-f
+		RewriteRule ^(.*)$ index.php?p=$1 [L,QSA]
+</IfModule>
+
+<IfModule mod_deflate.c>
+	<FilesMatch "\\.(js|css|html|htm|php|xml|json|txt)$">
+		SetOutputFilter DEFLATE
+	</FilesMatch>
+</IfModule>

@@ -1,0 +1,40 @@
+#dash-head{
+	left: 50%;
+	width: 600px;
+	margin: auto;
+	text-align: center;
+}
+#dash-body{
+	clear:left;
+}
+.dash-item{
+	display:block;
+	width:150px;
+	height:150px;
+	float:left;
+}
+
+.dash-body{
+	left: 50%;
+	width: 600px;
+	margin: auto;
+	text-align: center;
+}
+.grid{
+	
+}
+.grid-item{
+	display:block;
+	padding:10px;
+	width:280px;
+	float:left;
+	text-align: left;
+}
+.grid-item img{
+	border: solid 1px black;
+}
+.hunt-grid-item{
+
+}
+
+.clear{clear:both;}
