@@ -204,6 +204,10 @@ Class dbMySQL{
 				if($this->_debug){
 					echo mysqli_error($this->_mysqli);
 					debug_print_backtrace();
+				}else{
+					$debug = debug_backtrace();
+					$debug['sql'] = mysqli_error( $this->_mysqli );
+					trigger_error( var_dump( $debug ), E_USER_ERROR );
 				}
 				return false;
 			}
