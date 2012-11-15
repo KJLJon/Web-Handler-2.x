@@ -293,7 +293,8 @@ class session{
 	 */
 	private function remove_session(){
 		global $user;
-		$this->insert_session($_SESSION['user'],$_SESSION['sess'],$this->ip,'0');
+		if(isset($_SESSION['user'],$_SESSION['sess']))
+			$this->insert_session($_SESSION['user'],$_SESSION['sess'],$this->ip,'0');
 		session_destroy();
 		if(isset($_COOKIE['sess']))
 			setcookie ('sess', '', time() - 3600, null, null, null, true);
